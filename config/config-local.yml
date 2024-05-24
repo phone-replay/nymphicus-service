@@ -1,6 +1,6 @@
 server:
   AppVersion: 1.0.0
-  Port: :3000
+  Port: :8080
   PprofPort: :5555
   Mode: Development
   JwtSecretKey: secretkey
