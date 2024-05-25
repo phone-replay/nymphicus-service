@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/mongo"
 	"nymphicus-service/config"
 	"nymphicus-service/pkg/logger"
 	"os"
@@ -21,14 +22,26 @@ const (
 type Server struct {
 	cfg    *config.Config
 	logger logger.Logger
+	mongo  *mongo.Client
 	srv    *fasthttp.Server
 }
 
+func (s *Server) loggingMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		start := time.Now()
+		next(ctx)
+		end := time.Now()
+		s.logger.Infof("Method: %s, URI: %s, Status: %d, Duration: %s",
+			string(ctx.Method()), ctx.URI().String(), ctx.Response.StatusCode(), end.Sub(start))
+	}
+}
+
 // NewServer New Server constructor
-func NewServer(cfg *config.Config, logger logger.Logger) *Server {
+func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client) *Server {
 	server := &Server{
 		cfg:    cfg,
 		logger: logger,
+		mongo:  mongo,
 		srv: &fasthttp.Server{
 			Name:         "FastHTTP Server",
 			ReadTimeout:  time.Second * cfg.Server.ReadTimeout,
@@ -39,7 +52,7 @@ func NewServer(cfg *config.Config, logger logger.Logger) *Server {
 }
 
 func (s *Server) Run() error {
-	s.srv.Handler = s.handler
+	s.srv.Handler = s.loggingMiddleware(s.handler)
 
 	go func() {
 		s.logger.Infof("Server is listening on PORT: %s", s.cfg.Server.Port)

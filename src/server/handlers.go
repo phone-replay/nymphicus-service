@@ -7,15 +7,11 @@ import (
 
 // handler is the FastHTTP request handler
 func (s *Server) handler(ctx *fasthttp.RequestCtx) {
-	// Define your request handling logic here
-
-	c := controllers.NewController(s.cfg, s.logger)
+	c := controllers.NewController(s.cfg, s.logger, s.mongo)
 
 	switch string(ctx.Path()) {
-	case "/upload":
+	case "/write":
 		c.ControllerSDK(ctx)
-		ctx.Response.SetStatusCode(fasthttp.StatusOK)
-		ctx.Response.SetBodyString("Hello, World!")
 	default:
 		ctx.Error("Unsupported path", fasthttp.StatusNotFound)
 	}

@@ -2,6 +2,8 @@ package models
 
 type Action struct {
 	Activities []Activity `json:"activities"`
+	Device     Device     `json:"device"`
+	Key        string     `json:"key"`
 }
 
 type Activity struct {
