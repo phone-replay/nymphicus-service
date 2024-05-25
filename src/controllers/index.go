@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"log"
 	"mime/multipart"
@@ -14,6 +17,7 @@ import (
 	"nymphicus-service/pkg/utils"
 	"nymphicus-service/src/models"
 	"path/filepath"
+	"time"
 )
 
 type Controller interface {
@@ -21,21 +25,30 @@ type Controller interface {
 }
 
 type controller struct {
-	config *config.Config
-	logger logger.Logger
+	config      *config.Config
+	logger      logger.Logger
+	mongoClient *mongo.Client
 }
 
 func NewController(
 	config *config.Config,
 	logger logger.Logger,
+	mongoClient *mongo.Client,
 ) Controller {
 	return &controller{
-		config: config,
-		logger: logger,
+		config:      config,
+		logger:      logger,
+		mongoClient: mongoClient,
 	}
 }
 
 func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
+	param := string(ctx.QueryArgs().Peek("key"))
+	if len(param) == 0 {
+		utils.HandleRequestError(ctx, errors.New("missing 'key' query parameter"), c.logger)
+		return
+	}
+
 	multipartForm, err := ctx.MultipartForm()
 	if err != nil {
 		utils.HandleRequestError(ctx, err, c.logger)
@@ -54,6 +67,21 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	device, err := extractDeviceData(multipartForm)
+	if err != nil {
+		utils.HandleRequestError(ctx, err, c.logger)
+		return
+	}
+
+	actions.Device = device
+	actions.Key = param
+
+	err = c.saveActionsToMongo(actions)
+	if err != nil {
+		utils.HandleRequestError(ctx, err, c.logger)
+		return
+	}
+
 	timeLines := utils.GetTimeLines(actions.Activities)
 
 	go func() {
@@ -62,15 +90,19 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 		}
 	}()
 
-	device, err := extractDeviceData(multipartForm)
-	if err != nil {
-		utils.HandleRequestError(ctx, err, c.logger)
-		return
-	}
-
 	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActions: %+v", fileHeader.Filename, device, actions)
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetBody([]byte(response))
+}
+
+func (c *controller) saveActionsToMongo(actions models.Action) error {
+	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.InsertOne(ctx, actions)
+	return err
 }
 
 func extractFile(form *multipart.Form) (*multipart.FileHeader, error) {

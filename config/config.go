@@ -9,18 +9,12 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig
-	Postgres PostgresConfig
-	Cookie   Cookie
-	Session  Session
-	Logger   Logger
-	Metrics  Metrics
-	Email    Email
-}
-
-type Email struct {
-	Provider string
-	ApiKey   string
+	Server  ServerConfig
+	Cookie  Cookie
+	Session Session
+	Logger  Logger
+	Metrics Metrics
+	MongoDB MongoDBConfig
 }
 
 type ServerConfig struct {
@@ -46,14 +40,8 @@ type Logger struct {
 	Level             string
 }
 
-type PostgresConfig struct {
-	PostgresqlHost     string
-	PostgresqlPort     string
-	PostgresqlUser     string
-	PostgresqlPassword string
-	PostgresqlDbname   string
-	PostgresqlSSLMode  bool
-	PgDriver           string
+type MongoDBConfig struct {
+	MongoURI string
 }
 
 type Cookie struct {

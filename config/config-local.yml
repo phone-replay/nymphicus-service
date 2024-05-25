@@ -12,36 +12,12 @@ server:
   CSRF: true
   Debug: false
 
-email:
-  Provider: resend
-  ApiKey: re_PkrmBNsg_B3m8QxfZrRbAJrjmifBYwqM3
-
 logger:
   Development: true
   DisableCaller: false
   DisableStacktrace: false
   Encoding: json
   Level: info
-
-postgres:
-  PostgresqlHost: localhost
-  PostgresqlPort: 5432
-  PostgresqlUser: docker
-  PostgresqlPassword: docker
-  PostgresqlDbname: postgres
-  PostgresqlSslmode: false
-  PgDriver: pgx
-
-redis:
-  RedisAddr: localhost:6379
-  RedisPassword:
-  RedisDb: 0
-  RedisDefaultdb: 0
-  MinIdleConns: 200
-  PoolSize: 12000
-  PoolTimeout: 240
-  Password: ""
-  DB: 0
 
 cookie:
   Name: jwt-token
@@ -58,23 +34,5 @@ metrics:
   Url: 0.0.0.0:7070
   ServiceName: api
 
-
 mongodb:
-  MongoURI: uristring
-
-aws:
-  Endpoint: 127.0.0.1:9000
-  MinioAccessKey: minio
-  MinioSecretKey: minio123
-  UseSSL: false
-  MinioEndpoint: http://127.0.0.1:9000
-
-jaeger:
-  Host: localhost:6831
-  ServiceName: REST_API
-  LogSpans: false
-
-#aws:
-#  Endpoint: play.min.io
-#  MinioAccessKey: Q3AM3UQ867SPQQA43P2F
-#  MinioSecretKey: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+  MongoURI: mongodb://root:example@localhost:27017
