@@ -6,8 +6,11 @@ services:
     container_name: go_app
     depends_on:
       - mongodb
+    ports:
+      - "8080:8080"
     networks:
       - app-network
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -18,8 +21,10 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - mongo-data:/data/db
+
 networks:
   app-network:
     driver: bridge
+
 volumes:
   mongo-data:
