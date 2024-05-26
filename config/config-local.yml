@@ -34,5 +34,16 @@ metrics:
   Url: 0.0.0.0:7070
   ServiceName: api
 
+redis:
+  RedisAddr: localhost:6379
+  RedisPassword:
+  RedisDb: 0
+  RedisDefaultdb: 0
+  MinIdleConns: 200
+  PoolSize: 12000
+  PoolTimeout: 240
+  Password: yourpassword
+  DB: 0
+
 mongodb:
   MongoURI: mongodb://root:example@localhost:27017

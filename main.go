@@ -25,6 +25,8 @@ func main() {
 
 	appLogger := logger.NewApiLogger(cfg)
 
+	redisClient := database.NewRedisClient(cfg)
+
 	mongoClient, err := database.ConnectionDatabase(cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +35,7 @@ func main() {
 	appLogger.InitLogger()
 	appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %v", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode, cfg.Server.SSL)
 
-	s := server.NewServer(cfg, appLogger, mongoClient)
+	s := server.NewServer(cfg, appLogger, mongoClient, redisClient)
 	if err = s.Run(); err != nil {
 		log.Fatal(err)
 	}

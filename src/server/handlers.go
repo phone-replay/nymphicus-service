@@ -7,11 +7,13 @@ import (
 
 // handler is the FastHTTP request handler
 func (s *Server) handler(ctx *fasthttp.RequestCtx) {
-	c := controllers.NewController(s.cfg, s.logger, s.mongo)
-
+	indexRepository := controllers.NewController(s.cfg, s.logger, s.mongo)
+	checkRecordingController := controllers.NewCheckRecordingController(s.cfg, s.logger, s.redis)
 	switch string(ctx.Path()) {
 	case "/write":
-		c.ControllerSDK(ctx)
+		indexRepository.ControllerSDK(ctx)
+	case "/check-recording":
+		checkRecordingController.ValidateAccessKey(ctx)
 	default:
 		ctx.Error("Unsupported path", fasthttp.StatusNotFound)
 	}

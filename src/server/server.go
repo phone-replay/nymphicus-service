@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/mongo"
 	"nymphicus-service/config"
 	"nymphicus-service/pkg/logger"
@@ -24,6 +25,7 @@ type Server struct {
 	logger logger.Logger
 	mongo  *mongo.Client
 	srv    *fasthttp.Server
+	redis  *redis.Client
 }
 
 func (s *Server) loggingMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -37,7 +39,7 @@ func (s *Server) loggingMiddleware(next fasthttp.RequestHandler) fasthttp.Reques
 }
 
 // NewServer New Server constructor
-func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client) *Server {
+func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client, redis *redis.Client) *Server {
 	server := &Server{
 		cfg:    cfg,
 		logger: logger,
@@ -47,6 +49,7 @@ func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client) *S
 			ReadTimeout:  time.Second * cfg.Server.ReadTimeout,
 			WriteTimeout: time.Second * cfg.Server.WriteTimeout,
 		},
+		redis: redis,
 	}
 	return server
 }
