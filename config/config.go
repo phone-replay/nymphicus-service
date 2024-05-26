@@ -15,6 +15,7 @@ type Config struct {
 	Logger  Logger
 	Metrics Metrics
 	MongoDB MongoDBConfig
+	Redis   RedisConfig
 }
 
 type ServerConfig struct {
@@ -61,6 +62,18 @@ type Session struct {
 type Metrics struct {
 	URL         string
 	ServiceName string
+}
+
+type RedisConfig struct {
+	RedisAddr      string
+	RedisPassword  string
+	RedisDB        string
+	RedisDefaultdb string
+	MinIdleConns   int
+	PoolSize       int
+	PoolTimeout    int
+	Password       string
+	DB             int
 }
 
 func LoadConfig(filename string) (*viper.Viper, error) {
