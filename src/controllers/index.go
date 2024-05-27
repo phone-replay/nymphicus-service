@@ -75,6 +75,8 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 
 	actions.Device = device
 	actions.Key = param
+	sessionId := uuid.New().String()
+	actions.ID = sessionId
 
 	err = c.saveActionsToMongo(actions)
 	if err != nil {
@@ -85,7 +87,7 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 	timeLines := utils.GetTimeLines(actions.Activities)
 
 	go func() {
-		if err := sendToPythonEndpoint(fileHeader, timeLines, uuid.New().String()); err != nil {
+		if err := sendToPythonEndpoint(fileHeader, timeLines, sessionId); err != nil {
 			log.Printf("Failed to send data to Python endpoint: %v", err)
 		}
 	}()
