@@ -1,8 +1,10 @@
 package models
 
 type Action struct {
+	ID         string     `json:"id"`
 	Activities []Activity `json:"activities"`
 	Device     Device     `json:"device"`
+	VideoUrl   *string    `json:"videoUrl"`
 	Key        string     `json:"key"`
 }
 
