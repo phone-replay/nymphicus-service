@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Local Development",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/main.go",
+            "env": {
+                "config": "config/config-local.yml",
+                "MODE": "development",
+                "LOG_LEVEL": "debug",
+                "PORT": "8080"
+            },
+            "args": []
+        },
+        {
+            "name": "Production",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/main.go",
+            "env": {
+                "config": "config/config-prod.yml",
+                "MODE": "production",
+                "LOG_LEVEL": "info",
+                "PORT": "8080"
+            },
+            "args": []
+        }
+    ]
+}
