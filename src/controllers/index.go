@@ -13,6 +13,7 @@ import (
 	"log"
 	"mime/multipart"
 	"nymphicus-service/config"
+	"nymphicus-service/enum"
 	"nymphicus-service/pkg/logger"
 	"nymphicus-service/pkg/utils"
 	"nymphicus-service/src/models"
@@ -77,6 +78,7 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 	actions.Key = param
 	sessionId := uuid.New().String()
 	actions.ID = sessionId
+	actions.Status = enum.InProgress
 
 	err = c.saveActionsToMongo(actions)
 	if err != nil {
