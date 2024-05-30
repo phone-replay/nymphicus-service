@@ -1,11 +1,14 @@
 package models
 
+import "nymphicus-service/enum"
+
 type Action struct {
-	ID         string     `json:"id"`
-	Activities []Activity `json:"activities"`
-	Device     Device     `json:"device"`
-	VideoUrl   *string    `json:"videoUrl"`
-	Key        string     `json:"key"`
+	ID         string             `json:"id"`
+	Activities []Activity         `json:"activities"`
+	Device     Device             `json:"device"`
+	VideoUrl   *string            `json:"videoUrl"`
+	Status     enum.SessionStatus `json:"status"`
+	Key        string             `json:"key"`
 }
 
 type Activity struct {
