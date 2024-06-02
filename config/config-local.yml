@@ -46,4 +46,4 @@ redis:
   DB: 0
 
 mongodb:
-  MongoURI: mongodb://root:example@localhost:27017
+  MongoURI: mongodb://root:example@mongodb-service:27017
