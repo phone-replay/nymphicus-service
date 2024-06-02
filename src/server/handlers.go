@@ -5,7 +5,12 @@ import (
 	"nymphicus-service/src/controllers"
 )
 
-// handler is the FastHTTP request handler
+func HealthCheckHandler(ctx *fasthttp.RequestCtx) {
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.SetContentType("application/json")
+	ctx.SetBody([]byte(`{"status":"ok"}`))
+}
+
 func (s *Server) handler(ctx *fasthttp.RequestCtx) {
 	indexRepository := controllers.NewController(s.cfg, s.logger, s.mongo)
 	checkRecordingController := controllers.NewCheckRecordingController(s.cfg, s.logger, s.redis)
@@ -14,6 +19,8 @@ func (s *Server) handler(ctx *fasthttp.RequestCtx) {
 		indexRepository.ControllerSDK(ctx)
 	case "/check-recording":
 		checkRecordingController.ValidateAccessKey(ctx)
+	case "/health":
+		HealthCheckHandler(ctx)
 	default:
 		ctx.Error("Unsupported path", fasthttp.StatusNotFound)
 	}
