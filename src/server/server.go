@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	ctxTimeout = 5
+	ctxTimeout         = 5
+	maxRequestBodySize = 50 * 1024 * 1024 // 50 MB
 )
 
 // Server struct
@@ -45,9 +46,10 @@ func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client, re
 		logger: logger,
 		mongo:  mongo,
 		srv: &fasthttp.Server{
-			Name:         "FastHTTP Server",
-			ReadTimeout:  time.Second * cfg.Server.ReadTimeout,
-			WriteTimeout: time.Second * cfg.Server.WriteTimeout,
+			Name:               "FastHTTP Server",
+			ReadTimeout:        time.Second * cfg.Server.ReadTimeout,
+			WriteTimeout:       time.Second * cfg.Server.WriteTimeout,
+			MaxRequestBodySize: maxRequestBodySize,
 		},
 		redis: redis,
 	}
