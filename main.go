@@ -25,12 +25,7 @@ func main() {
 
 	appLogger := logger.NewApiLogger(cfg)
 
-	redisClient, err := database.NewRedisClient(cfg)
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		log.Fatal(err)
-	}
+	redisClient := database.NewRedisClient(cfg)
 
 	mongoClient, err := database.ConnectionDatabase(cfg)
 	if err != nil {
