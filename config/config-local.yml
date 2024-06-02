@@ -35,8 +35,8 @@ metrics:
   ServiceName: api
 
 redis:
-  RedisAddr: localhost:6379
-  RedisPassword:
+  RedisAddr: keydb-service:6379
+  RedisPassword: yourpassword
   RedisDb: 0
   RedisDefaultdb: 0
   MinIdleConns: 200
