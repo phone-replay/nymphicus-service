@@ -2,7 +2,7 @@ server:
   AppVersion: 1.0.0
   Port: :8080
   PprofPort: :5555
-  Mode: Development
+  Mode: production
   JwtSecretKey: secretkey
   CookieName: jwt-token
   ReadTimeout: 5
@@ -35,8 +35,8 @@ metrics:
   ServiceName: api
 
 redis:
-  RedisAddr: localhost:6379
-  RedisPassword:
+  RedisAddr: keydb-service:6379
+  RedisPassword: yourpassword
   RedisDb: 0
   RedisDefaultdb: 0
   MinIdleConns: 200
@@ -46,4 +46,4 @@ redis:
   DB: 0
 
 mongodb:
-  MongoURI: mongodb://root:example@localhost:27017
+  MongoURI: mongodb://root:example@mongodb-service:27017
