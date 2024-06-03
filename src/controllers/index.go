@@ -180,7 +180,7 @@ func sendToPythonEndpoint(fileHeader *multipart.FileHeader, timeLines []utils.Ti
 	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType(writer.FormDataContentType())
-	req.SetRequestURI("http://10.0.0.106:8000/send_binary_data")
+	req.SetRequestURI("http://otididae-video-service/send_binary_data")
 	req.SetBody(body.Bytes())
 
 	resp := fasthttp.AcquireResponse()
