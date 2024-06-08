@@ -45,5 +45,9 @@ redis:
   Password: yourpassword
   DB: 0
 
+
+services:
+  OtididaeURL: http://otididae-video-service
+
 mongodb:
   MongoURI: mongodb://root:example@mongodb-service:27017

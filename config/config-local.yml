@@ -45,5 +45,8 @@ redis:
   Password: yourpassword
   DB: 0
 
+services:
+  OtididaeURL: http://localhost:8000
+
 mongodb:
   MongoURI: mongodb://root:example@localhost:27017
