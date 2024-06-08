@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"log"
@@ -44,8 +45,8 @@ func NewController(
 }
 
 func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
-	param := string(ctx.QueryArgs().Peek("key"))
-	if len(param) == 0 {
+	key := string(ctx.QueryArgs().Peek("key"))
+	if len(key) == 0 {
 		utils.HandleRequestError(ctx, errors.New("missing 'key' query parameter"), c.logger)
 		return
 	}
@@ -62,50 +63,73 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	actions, err := extractActionsData(multipartForm)
-	if err != nil {
-		utils.HandleRequestError(ctx, err, c.logger)
-		return
-	}
-
 	device, err := extractDeviceData(multipartForm)
 	if err != nil {
 		utils.HandleRequestError(ctx, err, c.logger)
 		return
 	}
 
-	actions.Device = device
-	actions.Key = param
-	sessionId := uuid.New().String()
-	actions.ID = sessionId
-	actions.Status = enum.InProgress
-
-	err = c.saveActionsToMongo(actions)
+	session, err := extractActionsData(multipartForm)
 	if err != nil {
 		utils.HandleRequestError(ctx, err, c.logger)
 		return
 	}
 
-	timeLines := utils.GetTimeLines(actions.Activities)
+	session.Device = device
+	session.Key = key
+	sessionId := uuid.New().String()
+	session.ID = sessionId
+	session.Status = enum.InProgress.String()
+	session.CreatedAt = time.Now()
+
+	err = c.saveActionsToMongo(session)
+	if err != nil {
+		utils.HandleRequestError(ctx, err, c.logger)
+		return
+	}
+
+	timeLines := utils.GetTimeLines(session.Activities)
 
 	go func() {
-		if err := sendToPythonEndpoint(fileHeader, timeLines, sessionId); err != nil {
+		if err := generateVideo(fileHeader, timeLines, sessionId, c.config); err != nil {
+			err := c.updateSessionStatusToError(key)
+			if err != nil {
+				utils.HandleRequestError(ctx, err, c.logger)
+				return
+			}
 			log.Printf("Failed to send data to Python endpoint: %v", err)
 		}
 	}()
 
-	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActions: %+v", fileHeader.Filename, device, actions)
+	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActions: %+v", fileHeader.Filename, device, session)
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetBody([]byte(response))
 }
 
-func (c *controller) saveActionsToMongo(actions models.Action) error {
+func (c *controller) saveActionsToMongo(actions models.Session) error {
 	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	_, err := collection.InsertOne(ctx, actions)
+	return err
+}
+
+func (c *controller) updateSessionStatusToError(key string) error {
+	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"key": key}
+	update := bson.M{
+		"$set": bson.M{
+			"status": enum.Error.String(),
+		},
+	}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
 	return err
 }
 
@@ -129,19 +153,19 @@ func extractDeviceData(form *multipart.Form) (models.Device, error) {
 	return device, nil
 }
 
-func extractActionsData(form *multipart.Form) (models.Action, error) {
-	var actions models.Action
+func extractActionsData(form *multipart.Form) (models.Session, error) {
+	var session models.Session
 	actionsData := form.Value["actions"]
 	if len(actionsData) == 0 {
-		return actions, fmt.Errorf("actions data is missing")
+		return session, fmt.Errorf("session data is missing")
 	}
-	if err := json.Unmarshal([]byte(actionsData[0]), &actions); err != nil {
-		return actions, fmt.Errorf("failed to parse actions data")
+	if err := json.Unmarshal([]byte(actionsData[0]), &session); err != nil {
+		return session, fmt.Errorf("failed to parse session data")
 	}
-	return actions, nil
+	return session, nil
 }
 
-func sendToPythonEndpoint(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine, sessionId string) error {
+func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine, sessionId string, config *config.Config) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -180,7 +204,7 @@ func sendToPythonEndpoint(fileHeader *multipart.FileHeader, timeLines []utils.Ti
 	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType(writer.FormDataContentType())
-	req.SetRequestURI("http://otididae-video-service/send_binary_data_celery")
+	req.SetRequestURI(config.Services.OtididaeURL + "/send_binary_data_celery")
 	req.SetBody(body.Bytes())
 
 	resp := fasthttp.AcquireResponse()
