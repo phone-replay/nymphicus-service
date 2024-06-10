@@ -10,6 +10,7 @@ type Session struct {
 	Status     string     `json:"status"`
 	CreatedAt  time.Time  `json:"createdAt"`
 	Key        string     `json:"key"`
+	Duration   int64      `json:"duration"`
 }
 
 type Activity struct {

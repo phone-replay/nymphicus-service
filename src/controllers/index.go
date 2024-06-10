@@ -19,6 +19,7 @@ import (
 	"nymphicus-service/pkg/utils"
 	"nymphicus-service/src/models"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -75,12 +76,19 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	duration, err := extractDurationData(multipartForm)
+	if err != nil {
+		utils.HandleRequestError(ctx, err, c.logger)
+		return
+	}
+
 	session.Device = device
 	session.Key = key
 	sessionId := uuid.New().String()
 	session.ID = sessionId
 	session.Status = enum.InProgress.String()
 	session.CreatedAt = time.Now()
+	session.Duration = duration
 
 	err = c.saveActionsToMongo(session)
 	if err != nil {
@@ -91,7 +99,7 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 	timeLines := utils.GetTimeLines(session.Activities)
 
 	go func() {
-		if err := generateVideo(fileHeader, timeLines, sessionId, c.config); err != nil {
+		if err := generateVideo(fileHeader, timeLines, sessionId, strconv.FormatInt(duration, 10), c.config); err != nil {
 			err := c.updateSessionStatusToError(key)
 			if err != nil {
 				utils.HandleRequestError(ctx, err, c.logger)
@@ -101,36 +109,9 @@ func (c *controller) ControllerSDK(ctx *fasthttp.RequestCtx) {
 		}
 	}()
 
-	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActions: %+v", fileHeader.Filename, device, session)
+	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActions: %+v\nDuration: %d", fileHeader.Filename, device, session, duration)
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetBody([]byte(response))
-}
-
-func (c *controller) saveActionsToMongo(actions models.Session) error {
-	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	_, err := collection.InsertOne(ctx, actions)
-	return err
-}
-
-func (c *controller) updateSessionStatusToError(key string) error {
-	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	filter := bson.M{"key": key}
-	update := bson.M{
-		"$set": bson.M{
-			"status": enum.Error.String(),
-		},
-	}
-
-	_, err := collection.UpdateOne(ctx, filter, update)
-	return err
 }
 
 func extractFile(form *multipart.Form) (*multipart.FileHeader, error) {
@@ -165,7 +146,19 @@ func extractActionsData(form *multipart.Form) (models.Session, error) {
 	return session, nil
 }
 
-func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine, sessionId string, config *config.Config) error {
+func extractDurationData(form *multipart.Form) (int64, error) {
+	durationData := form.Value["duration"]
+	if len(durationData) == 0 {
+		return 0, fmt.Errorf("duration data is missing")
+	}
+	duration, err := strconv.ParseInt(durationData[0], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse duration data")
+	}
+	return duration, nil
+}
+
+func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine, sessionId string, duration string, config *config.Config) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -193,6 +186,10 @@ func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine,
 	}
 
 	if err = writer.WriteField("sessionId", sessionId); err != nil {
+		return err
+	}
+
+	if err = writer.WriteField("duration", duration); err != nil {
 		return err
 	}
 
@@ -225,4 +222,31 @@ func addFormField(writer *multipart.Writer, fieldName string, value interface{})
 		return err
 	}
 	return writer.WriteField(fieldName, string(jsonData))
+}
+
+func (c *controller) saveActionsToMongo(actions models.Session) error {
+	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.InsertOne(ctx, actions)
+	return err
+}
+
+func (c *controller) updateSessionStatusToError(key string) error {
+	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"key": key}
+	update := bson.M{
+		"$set": bson.M{
+			"status": enum.Error.String(),
+		},
+	}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	return err
 }
