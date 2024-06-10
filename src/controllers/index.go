@@ -204,7 +204,7 @@ func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine,
 	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType(writer.FormDataContentType())
-	req.SetRequestURI(config.Services.OtididaeURL + "/send_binary_data_celery")
+	req.SetRequestURI(config.Services.OtididaeURL)
 	req.SetBody(body.Bytes())
 
 	resp := fasthttp.AcquireResponse()

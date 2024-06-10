@@ -47,7 +47,7 @@ redis:
 
 
 services:
-  OtididaeURL: http://otididae-video-service
+  OtididaeURL: http://otididae-video-service/send_binary_data_celery
 
 mongodb:
   MongoURI: mongodb://root:example@mongodb-service:27017
