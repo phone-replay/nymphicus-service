@@ -25,15 +25,19 @@ func main() {
 
 	appLogger := logger.NewApiLogger(cfg)
 
-	redisClient := database.NewRedisClient(cfg)
+	appLogger.InitLogger()
+	appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %v", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode, cfg.Server.SSL)
 
-	mongoClient, err := database.ConnectionDatabase(cfg)
+	redisClient, err := database.NewRedisClient(cfg)
+	if err != nil {
+		appLogger.Fatalf("Redis init: %s", err)
+	}
+	appLogger.Infof("Redis connected")
+
+	mongoClient, err := database.ConnectionDatabase(cfg, appLogger)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	appLogger.InitLogger()
-	appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s, SSL: %v", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode, cfg.Server.SSL)
 
 	s := server.NewServer(cfg, appLogger, mongoClient, redisClient)
 	if err = s.Run(); err != nil {
