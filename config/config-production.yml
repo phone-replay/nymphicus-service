@@ -1,3 +1,5 @@
+#this yml actually doesn't running production
+
 server:
   AppVersion: 1.0.0
   Port: :8080
@@ -51,3 +53,4 @@ services:
 
 mongodb:
   MongoURI: mongodb://root:example@mongodb-service:27017
+  Database: mongo_db

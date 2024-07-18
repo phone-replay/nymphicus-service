@@ -44,6 +44,7 @@ type Logger struct {
 
 type MongoDBConfig struct {
 	MongoURI string
+	Database string
 }
 
 type Cookie struct {
