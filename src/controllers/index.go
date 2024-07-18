@@ -30,13 +30,13 @@ type Controller interface {
 type controller struct {
 	config      *config.Config
 	logger      logger.Logger
-	mongoClient *mongo.Client
+	mongoClient *mongo.Database
 }
 
 func NewController(
 	config *config.Config,
 	logger logger.Logger,
-	mongoClient *mongo.Client,
+	mongoClient *mongo.Database,
 ) Controller {
 	return &controller{
 		config:      config,
@@ -181,7 +181,7 @@ func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine,
 		return err
 	}
 
-	if err = addFormField(writer, "timeLines", timeLines); err != nil {
+	if err = AddFormField(writer, "timeLines", timeLines); err != nil {
 		return err
 	}
 
@@ -216,7 +216,7 @@ func generateVideo(fileHeader *multipart.FileHeader, timeLines []utils.TimeLine,
 	return nil
 }
 
-func addFormField(writer *multipart.Writer, fieldName string, value interface{}) error {
+func AddFormField(writer *multipart.Writer, fieldName string, value interface{}) error {
 	jsonData, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -225,7 +225,7 @@ func addFormField(writer *multipart.Writer, fieldName string, value interface{})
 }
 
 func (c *controller) saveActionsToMongo(actions models.Session) error {
-	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+	collection := c.mongoClient.Collection("sessions")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -235,7 +235,7 @@ func (c *controller) saveActionsToMongo(actions models.Session) error {
 }
 
 func (c *controller) updateSessionStatusToError(key string) error {
-	collection := c.mongoClient.Database("mongo_db").Collection("sessions")
+	collection := c.mongoClient.Collection("sessions")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

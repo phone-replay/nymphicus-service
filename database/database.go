@@ -2,9 +2,8 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"nymphicus-service/config"
+	"nymphicus-service/pkg/logger"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +15,7 @@ const (
 	mongoPingTimeout    = 2 * time.Second
 )
 
-func ConnectionDatabase(c *config.Config) (*mongo.Client, error) {
+func ConnectionDatabase(c *config.Config, logger logger.Logger) (*mongo.Database, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), mongoConnectTimeout)
 	defer cancel()
 
@@ -24,7 +23,7 @@ func ConnectionDatabase(c *config.Config) (*mongo.Client, error) {
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatalf("Failed to connect to MongoDB: %v", err)
 		return nil, err
 	}
 
@@ -32,17 +31,19 @@ func ConnectionDatabase(c *config.Config) (*mongo.Client, error) {
 	defer pingCancel()
 
 	if err := client.Ping(pingCtx, nil); err != nil {
-		log.Fatal(err)
+		logger.Fatalf("Failed to ping MongoDB: %v", err)
 		return nil, err
 	}
 
-	fmt.Println("Conectado ao MongoDB!")
+	logger.Infof("Connected to MongoDB!")
 
 	if c.Server.Mode == "production" {
-		fmt.Println("Está em ambiente de produção.")
+		logger.Infof("Running in production mode.")
 	} else {
-		fmt.Println("Está em ambiente de desenvolvimento.")
+		logger.Infof("Running in development mode.")
 	}
 
-	return client, nil
+	database := client.Database(c.MongoDB.Database)
+
+	return database, nil
 }

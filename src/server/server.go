@@ -20,11 +20,10 @@ const (
 	maxRequestBodySize = 50 * 1024 * 1024 // 50 MB
 )
 
-// Server struct
 type Server struct {
 	cfg    *config.Config
 	logger logger.Logger
-	mongo  *mongo.Client
+	mongo  *mongo.Database
 	srv    *fasthttp.Server
 	redis  *redis.Client
 }
@@ -40,7 +39,7 @@ func (s *Server) loggingMiddleware(next fasthttp.RequestHandler) fasthttp.Reques
 }
 
 // NewServer New Server constructor
-func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Client, redis *redis.Client) *Server {
+func NewServer(cfg *config.Config, logger logger.Logger, mongo *mongo.Database, redis *redis.Client) *Server {
 	server := &Server{
 		cfg:    cfg,
 		logger: logger,
