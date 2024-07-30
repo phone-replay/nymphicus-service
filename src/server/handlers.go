@@ -11,7 +11,6 @@ import (
 
 func (s *Server) handler(ctx *fasthttp.RequestCtx) {
 
-	indexRepository := controllers.NewController(s.cfg, s.logger, s.mongo)
 	sessionRepository := repository.NewSessionRepository(s.mongo)
 
 	videoService := service.NewVideoService(s.cfg)
@@ -20,8 +19,6 @@ func (s *Server) handler(ctx *fasthttp.RequestCtx) {
 	writeVideoDataController := controllerv2.NewWriteVideoDataController(s.cfg, s.logger, sessionRepository, videoService)
 
 	switch string(ctx.Path()) {
-	case "/write":
-		indexRepository.ControllerSDK(ctx)
 	case "/v2/write":
 		writeVideoDataController.WriteVideoData(ctx)
 	case "/check-recording":
