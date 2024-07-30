@@ -9,13 +9,14 @@ import (
 )
 
 type Config struct {
-	Server  ServerConfig
-	Cookie  Cookie
-	Session Session
-	Logger  Logger
-	Metrics Metrics
-	MongoDB MongoDBConfig
-	Redis   RedisConfig
+	Server   ServerConfig
+	Cookie   Cookie
+	Session  Session
+	Logger   Logger
+	Metrics  Metrics
+	MongoDB  MongoDBConfig
+	Redis    RedisConfig
+	Services Services
 }
 
 type ServerConfig struct {
@@ -43,6 +44,7 @@ type Logger struct {
 
 type MongoDBConfig struct {
 	MongoURI string
+	Database string
 }
 
 type Cookie struct {
@@ -74,6 +76,10 @@ type RedisConfig struct {
 	PoolTimeout    int
 	Password       string
 	DB             int
+}
+
+type Services struct {
+	OtididaeURL string
 }
 
 func LoadConfig(filename string) (*viper.Viper, error) {

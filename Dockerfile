@@ -9,5 +9,6 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/config/config-local.yml ./config/config-local.yml
+COPY --from=builder /app/config/config-production.yml ./config/config-production.yml
 EXPOSE 8080
 CMD ["./main"]

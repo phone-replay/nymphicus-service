@@ -14,46 +14,27 @@ import (
 const (
 	ErrBadRequest         = "Bad request"
 	ErrEmailAlreadyExists = "User with given email already exists"
-	ErrNoSuchUser         = "User not found"
-	ErrWrongCredentials   = "Wrong Credentials"
 	ErrNotFound           = "Not Found"
 	ErrUnauthorized       = "Unauthorized"
 	ErrForbidden          = "Forbidden"
-	ErrBadQueryParams     = "Invalid query params"
-	ErrMsgEmailEmpty      = "Field email cannot be empty"                  // Newly added error message
-	ErrMsgPasswordShort   = "Password must contain more than 8 characters" // Newly added error message
-	ErrMsgInvalidEmail    = "Invalid email"                                // Newly added error message
 )
 
 var (
-	BadRequest            = errors.New(ErrBadRequest)
-	WrongCredentials      = errors.New(ErrWrongCredentials)
-	NotFound              = errors.New(ErrNotFound)
-	Unauthorized          = errors.New(ErrUnauthorized)
-	Forbidden             = errors.New(ErrForbidden)
-	PermissionDenied      = errors.New("Permission Denied")
-	ExpiredCSRFError      = errors.New("Expired CSRF token")
-	WrongCSRFToken        = errors.New("Wrong CSRF token")
-	CSRFNotPresented      = errors.New("CSRF not presented")
-	NotRequiredFields     = errors.New("No such required fields")
-	BadQueryParams        = errors.New(ErrBadQueryParams)
-	InternalServerError   = errors.New("Internal Server Error")
-	RequestTimeoutError   = errors.New("Request Timeout")
-	ExistsEmailError      = errors.New(ErrEmailAlreadyExists)
-	InvalidJWTToken       = errors.New("Invalid JWT token")
-	InvalidJWTClaims      = errors.New("Invalid JWT claims")
-	NotAllowedImageHeader = errors.New("Not allowed image header")
-	NoCookie              = errors.New("not found cookie header")
+	BadRequest          = errors.New(ErrBadRequest)
+	NotFound            = errors.New(ErrNotFound)
+	Unauthorized        = errors.New(ErrUnauthorized)
+	Forbidden           = errors.New(ErrForbidden)
+	InternalServerError = errors.New("Internal Server Error")
+	RequestTimeoutError = errors.New("Request Timeout")
+	ExistsEmailError    = errors.New(ErrEmailAlreadyExists)
 )
 
-// Rest error interface
 type RestErr interface {
 	Status() int
 	Error() string
 	Causes() interface{}
 }
 
-// Rest error struct
 type RestError struct {
 	ErrStatus int         `json:"status,omitempty"`
 	ErrError  string      `json:"error,omitempty"`

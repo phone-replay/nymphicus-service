@@ -1,3 +1,5 @@
+#this yml actually doesn't running production
+
 server:
   AppVersion: 1.0.0
   Port: :8080
@@ -45,5 +47,10 @@ redis:
   Password: yourpassword
   DB: 0
 
+
+services:
+  OtididaeURL: http://otididae-video-service/send_binary_data_celery
+
 mongodb:
   MongoURI: mongodb://root:example@mongodb-service:27017
+  Database: mongo_db

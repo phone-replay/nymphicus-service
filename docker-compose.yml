@@ -1,36 +1,31 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - CONFIG=docker
-    depends_on:
-      - mongodb
-    networks:
-      - app-network
-    deploy:
-      replicas: 0
-
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: mongodb_nymphicus_local_test
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db
     networks:
       - app-network
+  keydb:
+    image: eqalpha/keydb
+    container_name: keydb
+    ports:
+      - "6379:6379"
+    volumes:
+      - keydb_data:/data
+    command: [ "--requirepass", "yourpassword" ]
 
 volumes:
   mongo-data:
+  keydb_data:
+
 
 networks:
   app-network:

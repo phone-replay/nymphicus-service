@@ -13,7 +13,6 @@ type Device struct {
 	Platform         string  `json:"platform"`
 	ScreenResolution string  `json:"screenResolution"`
 	SdkVersion       int     `json:"sdkVersion"`
-	SessionId        string  `json:"sessionId"`
 	TotalRAM         string  `json:"totalRAM"`
 	TotalStorage     string  `json:"totalStorage"`
 }

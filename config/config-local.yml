@@ -45,5 +45,9 @@ redis:
   Password: yourpassword
   DB: 0
 
+services:
+  OtididaeURL: http://localhost:8012/v2/send_binary_data
+
 mongodb:
-  MongoURI: mongodb://root:example@localhost:27017
+  MongoURI: mongodb://root:example@localhost:27018
+  Database: mongo_db
