@@ -70,7 +70,7 @@ func (c *writeVideoData) WriteVideoData(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	activityGestureLogs, err := extractActivityGestureLogs(multipartForm)
+	activityGesture, err := extractActivityGestureLogs(multipartForm)
 	if err != nil {
 		utils.HandleRequestError(ctx, err, c.logger)
 		return
@@ -82,7 +82,7 @@ func (c *writeVideoData) WriteVideoData(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	session, err := createSession(key, device, duration)
+	session, err := createSession(key, device, duration, activityGesture)
 	if err != nil {
 		utils.HandleRequestError(ctx, err, c.logger)
 		return
@@ -95,7 +95,7 @@ func (c *writeVideoData) WriteVideoData(ctx *fasthttp.RequestCtx) {
 	}
 
 	go func() {
-		if err := c.videoService.RequestGenerateVideo(fileHeader, activityGestureLogs, session.ID, strconv.FormatInt(duration, 10)); err != nil {
+		if err := c.videoService.RequestGenerateVideo(fileHeader, activityGesture, session.ID, strconv.FormatInt(duration, 10)); err != nil {
 			if err := c.sessionRepository.UpdateSessionStatusToError(key); err != nil {
 				log.Printf("Failed to update session status to error: %v", err)
 			}
@@ -103,20 +103,21 @@ func (c *writeVideoData) WriteVideoData(ctx *fasthttp.RequestCtx) {
 		}
 	}()
 
-	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActivity Gesture Logs: %+v\nDuration: %d", fileHeader.Filename, device, activityGestureLogs, duration)
+	response := fmt.Sprintf("File received: %s\nDevice: %+v\nActivity Gesture Logs: %+v\nDuration: %d", fileHeader.Filename, device, activityGesture, duration)
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetBody([]byte(response))
 }
 
 // createSession creates a new session object.
-func createSession(key string, device models.Device, duration int64) (models.Session, error) {
+func createSession(key string, device models.Device, duration int64, activityGesture src.ActivityGestureLogs) (models.Session, error) {
 	return models.Session{
-		ID:        uuid.New().String(),
-		Key:       key,
-		Device:    device,
-		Status:    enum.InProgress.String(),
-		CreatedAt: time.Now(),
-		Duration:  duration,
+		ID:         uuid.New().String(),
+		Activities: activityGesture,
+		Device:     device,
+		Status:     enum.InProgress.String(),
+		CreatedAt:  time.Now(),
+		Key:        key,
+		Duration:   duration,
 	}, nil
 }
 
